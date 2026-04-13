@@ -45,6 +45,8 @@ body:
 
   - type: textarea
     id: goal
+    attributes:
+      label: Goal
     validations:
       required: true
 
@@ -56,6 +58,8 @@ body:
 
   - type: textarea
     id: deliverables
+    attributes:
+      label: Deliverables
     validations:
       required: true
 
@@ -67,6 +71,8 @@ body:
 
   - type: textarea
     id: acceptance
+    attributes:
+      label: Acceptance Criteria
     validations:
       required: true
 
@@ -79,6 +85,7 @@ body:
   - type: checkboxes
     id: tests
     attributes:
+      label: Tests Required
       options:
         - label: Unit tests
         - label: Integration tests
@@ -93,6 +100,8 @@ body:
 
   - type: textarea
     id: contracts
+    attributes:
+      label: Contracts Affected
 
   - type: markdown
     attributes:
@@ -102,10 +111,12 @@ body:
 
   - type: textarea
     id: verification
-    value: |
-      make validate
-      make test
-      make e2e (if applicable)
+    attributes:
+      label: Verification
+      value: |
+        make validate
+        make test
+        make e2e (if applicable)
 
   - type: checkboxes
     id: readiness
