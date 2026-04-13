@@ -1,0 +1,36 @@
+asyncapi: 2.6.0
+id: urn:datamesh:asyncapi:business
+info:
+  title: Maintenance Canonical Business Topics
+  version: 1.0.0
+  description: Canonical maintenance events in notification+pull and ECST snapshot styles.
+defaultContentType: application/json
+servers:
+  local:
+    url: kafka:9092
+    protocol: kafka
+channels:
+  maintenance.workorder.notification.v1:
+    description: Thin notification event with IDs and href for pull.
+    subscribe:
+      operationId: consumeWorkOrderNotification
+      message:
+        $ref: '#/components/messages/WorkOrderNotificationMessage'
+  maintenance.workorder.snapshot.v1:
+    description: Fat snapshot event with embedded Asset summary.
+    subscribe:
+      operationId: consumeWorkOrderSnapshot
+      message:
+        $ref: '#/components/messages/WorkOrderSnapshotMessage'
+components:
+  messages:
+    WorkOrderNotificationMessage:
+      name: WorkOrderNotificationMessage
+      title: Canonical WorkOrder Notification
+      payload:
+        $ref: ../schemas/canonical.workorder.notification.v1.schema.json
+    WorkOrderSnapshotMessage:
+      name: WorkOrderSnapshotMessage
+      title: Canonical WorkOrder Snapshot
+      payload:
+        $ref: ../schemas/canonical.workorder.snapshot.v1.schema.json

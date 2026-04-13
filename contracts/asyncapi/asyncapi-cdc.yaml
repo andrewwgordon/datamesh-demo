@@ -1,0 +1,36 @@
+asyncapi: 2.6.0
+id: urn:datamesh:asyncapi:cdc
+info:
+  title: EAM CDC Topics
+  version: 1.0.0
+  description: Row-level CDC topics with before/after images for Asset and WorkOrder.
+defaultContentType: application/json
+servers:
+  local:
+    url: kafka:9092
+    protocol: kafka
+channels:
+  cdc.eam.asset.v1:
+    description: CDC events for asset table.
+    publish:
+      operationId: consumeCdcAsset
+      message:
+        $ref: '#/components/messages/CdcAssetMessage'
+  cdc.eam.work_order.v1:
+    description: CDC events for work_order table.
+    publish:
+      operationId: consumeCdcWorkOrder
+      message:
+        $ref: '#/components/messages/CdcWorkOrderMessage'
+components:
+  messages:
+    CdcAssetMessage:
+      name: CdcAssetMessage
+      title: CDC Asset Event
+      payload:
+        $ref: ../schemas/cdc.asset.v1.schema.json
+    CdcWorkOrderMessage:
+      name: CdcWorkOrderMessage
+      title: CDC WorkOrder Event
+      payload:
+        $ref: ../schemas/cdc.work_order.v1.schema.json
