@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: Maintenance Data Product - Data Plane API
+  version: 1.0.0
+  description: Query canonical Asset and WorkOrder state.
+servers:
+  - url: http://localhost:8000
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/assets/{assetId}:
+    get:
+      summary: Get canonical asset
+      operationId: getAssetById
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Canonical asset summary
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/canonical.asset.summary.v1.schema.json
+        '404':
+          description: Asset not found
+  /api/v1/work-orders/{workOrderId}:
+    get:
+      summary: Get canonical work order
+      operationId: getWorkOrderById
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Canonical work order snapshot envelope
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/canonical.workorder.snapshot.v1.schema.json
+        '404':
+          description: Work order not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

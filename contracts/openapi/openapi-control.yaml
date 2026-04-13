@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: Maintenance Data Product - Control Plane API
+  version: 1.0.0
+  description: Discover contracts/interfaces, request subscription metadata, and lineage pointers.
+servers:
+  - url: http://localhost:8000
+security:
+  - bearerAuth: []
+paths:
+  /cp/v1:
+    get:
+      summary: Control plane root
+      operationId: getControlPlaneRoot
+      responses:
+        '200':
+          description: Control plane capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  product:
+                    type: string
+                  version:
+                    type: string
+                  links:
+                    type: object
+  /cp/v1/contract:
+    get:
+      summary: Get product contract reference
+      operationId: getProductContract
+      responses:
+        '200':
+          description: Product contract metadata and reference
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [artifactId, href]
+                properties:
+                  artifactId:
+                    type: string
+                  href:
+                    type: string
+                    format: uri-reference
+  /cp/v1/interfaces:
+    get:
+      summary: Get interface pointers
+      operationId: getInterfaces
+      responses:
+        '200':
+          description: OpenAPI and AsyncAPI pointers
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  openapi:
+                    type: array
+                    items:
+                      type: string
+                  asyncapi:
+                    type: array
+                    items:
+                      type: string
+  /cp/v1/subscriptions:
+    post:
+      summary: Get subscription details for consumers
+      operationId: createSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [consumerName, mode]
+              properties:
+                consumerName:
+                  type: string
+                mode:
+                  type: string
+                  enum: [notification-pull, snapshot]
+      responses:
+        '200':
+          description: Subscription and schema references
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [topics]
+                properties:
+                  topics:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required: [name, schemaRef]
+                      properties:
+                        name:
+                          type: string
+                        schemaRef:
+                          type: string
+  /cp/v1/lineage:
+    get:
+      summary: Get lineage pointers
+      operationId: getLineagePointers
+      responses:
+        '200':
+          description: Lineage job URL and metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [job, href]
+                properties:
+                  job:
+                    type: string
+                  href:
+                    type: string
+                    format: uri-reference
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
