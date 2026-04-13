@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:datamesh:schemas:cdc.asset.v1",
+  "title": "CDC Asset Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "eventTime", "source", "topic", "table", "op", "before", "after"],
+  "properties": {
+    "eventId": { "type": "string", "minLength": 1 },
+    "eventTime": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "const": "eam" },
+    "topic": { "type": "string", "const": "cdc.eam.asset.v1" },
+    "table": { "type": "string", "const": "asset" },
+    "op": { "type": "string", "enum": ["c", "u", "d"] },
+    "before": { "$ref": "#/$defs/assetNullable" },
+    "after": { "$ref": "#/$defs/assetNullable" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "op": { "const": "c" } } },
+      "then": {
+        "properties": { "before": { "type": "null" } },
+        "required": ["after"]
+      }
+    },
+    {
+      "if": { "properties": { "op": { "const": "u" } } },
+      "then": {
+        "properties": {
+          "before": { "$ref": "#/$defs/asset" },
+          "after": { "$ref": "#/$defs/asset" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "op": { "const": "d" } } },
+      "then": {
+        "properties": { "after": { "type": "null" } },
+        "required": ["before"]
+      }
+    }
+  ],
+  "$defs": {
+    "assetNullable": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/asset" }]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["asset_id", "name"],
+      "properties": {
+        "asset_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "type": ["string", "null"] },
+        "location": { "type": ["string", "null"] },
+        "status": { "type": ["string", "null"] },
+        "updated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

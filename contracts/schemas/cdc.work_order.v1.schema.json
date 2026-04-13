@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:datamesh:schemas:cdc.work_order.v1",
+  "title": "CDC WorkOrder Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "eventTime", "source", "topic", "table", "op", "before", "after"],
+  "properties": {
+    "eventId": { "type": "string", "minLength": 1 },
+    "eventTime": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "const": "eam" },
+    "topic": { "type": "string", "const": "cdc.eam.work_order.v1" },
+    "table": { "type": "string", "const": "work_order" },
+    "op": { "type": "string", "enum": ["c", "u", "d"] },
+    "before": { "$ref": "#/$defs/workOrderNullable" },
+    "after": { "$ref": "#/$defs/workOrderNullable" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "op": { "const": "c" } } },
+      "then": {
+        "properties": { "before": { "type": "null" } },
+        "required": ["after"]
+      }
+    },
+    {
+      "if": { "properties": { "op": { "const": "u" } } },
+      "then": {
+        "properties": {
+          "before": { "$ref": "#/$defs/workOrder" },
+          "after": { "$ref": "#/$defs/workOrder" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "op": { "const": "d" } } },
+      "then": {
+        "properties": { "after": { "type": "null" } },
+        "required": ["before"]
+      }
+    }
+  ],
+  "$defs": {
+    "workOrderNullable": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/workOrder" }]
+    },
+    "workOrder": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["work_order_id", "asset_id", "title", "status", "deleted"],
+      "properties": {
+        "work_order_id": { "type": "string", "minLength": 1 },
+        "asset_id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": ["string", "null"] },
+        "status": { "type": "string", "minLength": 1 },
+        "priority": { "type": ["string", "null"] },
+        "deleted": { "type": "boolean" },
+        "updated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

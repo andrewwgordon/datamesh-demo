@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:datamesh:schemas:canonical.workorder.notification.v1",
+  "title": "Canonical WorkOrder Notification v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "eventTime", "topic", "workOrderId", "assetId", "status", "op", "href"],
+  "properties": {
+    "eventId": { "type": "string", "minLength": 1 },
+    "eventTime": { "type": "string", "format": "date-time" },
+    "topic": { "type": "string", "const": "maintenance.workorder.notification.v1" },
+    "workOrderId": { "type": "string", "minLength": 1 },
+    "assetId": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "minLength": 1 },
+    "op": { "type": "string", "enum": ["c", "u", "d"] },
+    "href": { "type": "string", "format": "uri-reference" },
+    "changedFields": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "default": []
+    }
+  }
+}

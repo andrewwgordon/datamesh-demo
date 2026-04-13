@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:datamesh:schemas:canonical.asset.summary.v1",
+  "title": "Canonical Asset Summary v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["assetId", "name"],
+  "properties": {
+    "assetId": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "type": { "type": ["string", "null"] },
+    "location": { "type": ["string", "null"] },
+    "status": { "type": ["string", "null"] },
+    "href": { "type": ["string", "null"], "format": "uri-reference" }
+  }
+}
