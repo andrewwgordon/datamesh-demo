@@ -5,36 +5,48 @@ on:
   pull_request:
 
 jobs:
-  contract-validation:
+  contracts-and-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install test dependencies
-        run: python -m pip install --upgrade pip pytest pyyaml jsonschema
+          python-version: "3.14"
+
+      - name: Install Python test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
       - name: Validate contracts
         run: make validate
 
-  smoke-stack:
+      - name: Run all Python tests
+        run: make test
+
+  smoke-compose-stack:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install test dependencies
-        run: python -m pip install --upgrade pip pytest
-      - name: Start platform stack
+          python-version: "3.14"
+
+      - name: Install Python test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Start platform services
         run: make up
-      - name: Run Phase A smoke tests
-        run: python -m pytest -q tests/smoke/test_phase_a_stack.py
-      - name: Dump compose status on failure
-        if: failure()
-        run: docker compose -f platform/docker-compose.yml -f .devcontainer/docker-compose.codespaces.yml ps
-      - name: Tear down platform stack
+
+      - name: Run smoke tests
+        run: python -m pytest -q tests/smoke
+
+      - name: Stop platform services
         if: always()
         run: make down
