@@ -1,30 +1,12 @@
 {
   "name": "EAM Maintenance PoC (Compose)",
-  "image": "mcr.microsoft.com/devcontainers/python:0-3.11-bullseye",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "GitHub.copilot",
-        "GitHub.copilot-chat",
-        "ms-python.python",
-        "ms-azuretools.vscode-docker",
-        "redhat.vscode-yaml"
-      ]
-    }
-  },
-  "postCreateCommand": "pip install -r requirements-dev.txt || true",
-  "forwardPorts": [
-    8000,
-    8001,
-    8080,
-    5000,
-    3000,
-    9092,
-    5432
+  "image": "mcr.microsoft.com/devcontainers/python:3.14",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
+  "features": {},
+  "postCreateCommand": "pip install -r requirements-dev.txt || true",
+  "forwardPorts": [8000, 8001, 8080, 5000, 3000, 9092, 5432],
   "portsAttributes": {
     "8000": { "label": "Data Product API (OpenAPI)" },
     "8001": { "label": "EAM Simulator API" },
