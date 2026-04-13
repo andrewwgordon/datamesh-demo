@@ -36,6 +36,8 @@ body:
 
   - type: textarea
     id: objectives
+    attributes:
+      label: Objectives
     validations:
       required: true
 
@@ -47,6 +49,8 @@ body:
 
   - type: textarea
     id: acceptance
+    attributes:
+      label: Acceptance Criteria
     validations:
       required: true
 
