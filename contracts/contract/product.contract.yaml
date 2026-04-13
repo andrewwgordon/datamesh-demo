@@ -1,0 +1,47 @@
+apiVersion: datamesh/v1
+kind: DataProductContract
+metadata:
+  name: maintenance-history
+  version: 1.0.0
+  domain: maintenance
+  owner:
+    team: eam-platform
+    contact: eam-platform@example.com
+spec:
+  description: Equipment Asset Management maintenance history data product.
+  sla:
+    availability: TBD
+    freshness: TBD
+  interfaces:
+    openapi:
+      - artifactId: openapi-data
+        path: contracts/openapi/openapi-data.yaml
+      - artifactId: openapi-control
+        path: contracts/openapi/openapi-control.yaml
+    asyncapi:
+      - artifactId: asyncapi-cdc
+        path: contracts/asyncapi/asyncapi-cdc.yaml
+      - artifactId: asyncapi-business
+        path: contracts/asyncapi/asyncapi-business.yaml
+  schemas:
+    - artifactId: cdc.asset.v1.schema
+      path: contracts/schemas/cdc.asset.v1.schema.json
+    - artifactId: cdc.work_order.v1.schema
+      path: contracts/schemas/cdc.work_order.v1.schema.json
+    - artifactId: canonical.asset.summary.v1.schema
+      path: contracts/schemas/canonical.asset.summary.v1.schema.json
+    - artifactId: canonical.workorder.notification.v1.schema
+      path: contracts/schemas/canonical.workorder.notification.v1.schema.json
+    - artifactId: canonical.workorder.snapshot.v1.schema
+      path: contracts/schemas/canonical.workorder.snapshot.v1.schema.json
+  topics:
+    cdc:
+      - cdc.eam.asset.v1
+      - cdc.eam.work_order.v1
+    business:
+      - maintenance.workorder.notification.v1
+      - maintenance.workorder.snapshot.v1
+  lineage:
+    system: marquez
+    job: eam-cdc-to-canonical
+    href: http://localhost:3000
