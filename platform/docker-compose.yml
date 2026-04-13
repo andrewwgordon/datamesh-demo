@@ -1,0 +1,185 @@
+name: datamesh-demo
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: datamesh-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: eam
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eam"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  postgres-init:
+    image: postgres:16-alpine
+    container_name: datamesh-postgres-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: postgres
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        set -e
+        until pg_isready -h postgres -U postgres -d postgres; do sleep 1; done
+        psql -h postgres -U postgres -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='marquez'" | grep -q 1 || \
+          psql -h postgres -U postgres -d postgres -c "CREATE ROLE marquez LOGIN PASSWORD 'marquez'"
+        psql -h postgres -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='marquez'" | grep -q 1 || \
+          psql -h postgres -U postgres -d postgres -c "CREATE DATABASE marquez OWNER marquez"
+
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: datamesh-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+
+  apicurio:
+    image: apicurio/apicurio-registry-mem:2.6.2.Final
+    container_name: datamesh-apicurio
+    environment:
+      QUARKUS_HTTP_PORT: 8080
+    depends_on:
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/apis/registry/v2/system/info >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  marquez-api:
+    image: marquezproject/marquez:0.50.0
+    container_name: datamesh-marquez-api
+    environment:
+      MARQUEZ_PORT: 5000
+      MARQUEZ_ADMIN_PORT: 5001
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      SEARCH_ENABLED: "false"
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/api/v1/namespaces >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  marquez-web:
+    image: marquezproject/marquez-web:0.50.0
+    container_name: datamesh-marquez-web
+    environment:
+      MARQUEZ_HOST: marquez-api
+      MARQUEZ_PORT: 5000
+    depends_on:
+      marquez-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: datamesh-keycloak
+    command: ["start-dev", "--http-port=8080"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/ready >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  eam-sim:
+    image: alpine:3.20
+    container_name: datamesh-eam-sim
+    command: ["sh", "-c", "tail -f /dev/null"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cdc-sim:
+    image: alpine:3.20
+    container_name: datamesh-cdc-sim
+    command: ["sh", "-c", "tail -f /dev/null"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  normalizer:
+    image: alpine:3.20
+    container_name: datamesh-normalizer
+    command: ["sh", "-c", "tail -f /dev/null"]
+    depends_on:
+      cdc-sim:
+        condition: service_started
+
+  data-product:
+    image: alpine:3.20
+    container_name: datamesh-data-product
+    command: ["sh", "-c", "tail -f /dev/null"]
+    depends_on:
+      normalizer:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
+
+  consumer-notif-pull:
+    image: alpine:3.20
+    container_name: datamesh-consumer-notif-pull
+    command: ["sh", "-c", "tail -f /dev/null"]
+    depends_on:
+      data-product:
+        condition: service_started
+
+  consumer-ecst:
+    image: alpine:3.20
+    container_name: datamesh-consumer-ecst
+    command: ["sh", "-c", "tail -f /dev/null"]
+    depends_on:
+      data-product:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  kafka_data:
