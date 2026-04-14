@@ -1,8 +1,8 @@
 up:
-	docker compose -f platform/docker-compose.yml -f .devcontainer/docker-compose.codespaces.yml up -d
+	docker compose -f platform/docker-compose.yml up -d
 
 down:
-	docker compose -f platform/docker-compose.yml -f .devcontainer/docker-compose.codespaces.yml down -v
+	docker compose -f platform/docker-compose.yml down -v
 
 bootstrap:
 	bash platform/bootstrap/00_create_topics.sh

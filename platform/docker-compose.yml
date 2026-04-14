@@ -117,12 +117,21 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
     container_name: datamesh-keycloak
-    command: ["start-dev", "--http-port=8080"]
+    # Added --health-enabled=true to make your healthcheck work
+    command: ["start-dev", "--http-port=8080", "--health-enabled=true"]
     environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/eam
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/ready >/dev/null 2>&1"]
+      # Keycloak 25.x uses /health/live or /health/ready
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/live HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep '200 OK'"]
       interval: 10s
       timeout: 5s
       retries: 30

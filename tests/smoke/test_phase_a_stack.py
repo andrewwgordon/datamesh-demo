@@ -20,8 +20,6 @@ def _compose_ps_service_status():
         "compose",
         "-f",
         "platform/docker-compose.yml",
-        "-f",
-        ".devcontainer/docker-compose.codespaces.yml",
         "ps",
         "--format",
         "json",
