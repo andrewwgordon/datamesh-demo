@@ -14,7 +14,6 @@ PROJECT_ROOT = Path(".")  # run from repo root
 
 
 DIRECTORIES = [
-    ".devcontainer",
     ".github/prompts",
     ".github/workflows",
     ".github/ISSUE_TEMPLATE",
@@ -37,10 +36,6 @@ FILES = [
     "README.md",
     "AGENTS.md",
     "Makefile",
-
-    # Devcontainer
-    ".devcontainer/devcontainer.json",
-    ".devcontainer/docker-compose.codespaces.yml",
 
     # GitHub / Copilot
     ".github/copilot-instructions.md",

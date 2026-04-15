@@ -5,7 +5,7 @@ AGENTS.md is the authoritative execution plan. Implement one ticket per PR.
 
 ## Rules
 - Contracts-first: update JSON Schemas + AsyncAPI + OpenAPI before code changes.
-- All runtime is Docker Compose (no local installs beyond devcontainer).
+- All runtime is Docker Compose.
 - Every ticket must include tests.
 - CDC is row-level with before+after.
 - ECST snapshot includes embedded Asset summary.

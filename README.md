@@ -18,11 +18,19 @@ The project demonstrates a contracts-first, event-driven data product that:
 - Registers contracts in Apicurio
 - Emits lineage metadata for Marquez
 
-## Devcontainer Docker permissions
+## Docker permissions
 
-The devcontainer is configured to mount `/var/run/docker.sock` and automatically add the `vscode` user to the socket's group on startup. This allows running Docker/Compose commands without `sudo`.
+The development environment uses Docker Compose directly. Ensure your user account has permissions to run Docker commands (typically by being added to the `docker` group).
 
-If you still see a Docker permission error after opening the workspace, run **Dev Containers: Rebuild and Reopen in Container** (or open a new terminal session) so group membership is refreshed.
+### Codespaces Setup
+
+When opening the repository in GitHub Codespaces, run the setup script to ensure the Docker Compose plugin is available:
+
+```bash
+.devcontainer/setup.sh
+```
+
+This script checks if the Docker Compose plugin is installed in `$HOME/.docker/cli-plugins/` and installs it if missing.
 
 ## Architecture
 

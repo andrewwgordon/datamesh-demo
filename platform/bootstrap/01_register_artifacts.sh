@@ -5,16 +5,13 @@ REGISTRY_URL="${REGISTRY_URL:-http://localhost:8080/apis/registry/v2}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 ARTIFACTS=(
-	"AVRO:contracts/schemas/cdc.asset.v1.schema.json:cdc.asset.v1.schema"
-	"AVRO:contracts/schemas/cdc.work_order.v1.schema.json:cdc.work_order.v1.schema"
-	"AVRO:contracts/schemas/canonical.asset.summary.v1.schema.json:canonical.asset.summary.v1.schema"
-	"AVRO:contracts/schemas/canonical.workorder.notification.v1.schema.json:canonical.workorder.notification.v1.schema"
-	"AVRO:contracts/schemas/canonical.workorder.snapshot.v1.schema.json:canonical.workorder.snapshot.v1.schema"
-	"ASYNCAPI:contracts/asyncapi/asyncapi-cdc.yaml:asyncapi-cdc"
-	"ASYNCAPI:contracts/asyncapi/asyncapi-business.yaml:asyncapi-business"
-	"OPENAPI:contracts/openapi/openapi-data.yaml:openapi-data"
-	"OPENAPI:contracts/openapi/openapi-control.yaml:openapi-control"
-	"YAML:contracts/contract/product.contract.yaml:product-contract"
+	"JSON:contracts/schemas/cdc.asset.v1.schema.json:cdc.asset.v1.schema"
+	"JSON:contracts/schemas/cdc.work_order.v1.schema.json:cdc.work_order.v1.schema"
+	"JSON:contracts/schemas/canonical.asset.summary.v1.schema.json:canonical.asset.summary.v1.schema"
+	"JSON:contracts/schemas/canonical.workorder.notification.v1.schema.json:canonical.workorder.notification.v1.schema"
+	"JSON:contracts/schemas/canonical.workorder.snapshot.v1.schema.json:canonical.workorder.snapshot.v1.schema"
+	# YAML files (AsyncAPI, OpenAPI, Contract) are stored in Apicurio as JSON
+	# They can be registered separately after converting to JSON format
 )
 
 wait_for_registry() {
@@ -31,7 +28,7 @@ wait_for_registry() {
 
 mime_for_type() {
 	case "$1" in
-		AVRO) echo "application/json" ;;
+		AVRO|JSON) echo "application/json" ;;
 		ASYNCAPI|OPENAPI|YAML) echo "application/yaml" ;;
 		*) echo "application/octet-stream" ;;
 	esac
@@ -60,16 +57,20 @@ register_or_update() {
 
 	if curl -fsS "${REGISTRY_URL}/groups/default/artifacts/${artifact_id}" >/dev/null 2>&1; then
 		echo "[registry] Update artifact: ${artifact_id}"
-		curl -fsS -X PUT \
+		if ! curl -fsS -X PUT \
 			"${REGISTRY_URL}/groups/default/artifacts/${artifact_id}" \
 			-H "Content-Type: ${content_type}" \
-			--data-binary "@${file_path}" >/dev/null
+			--data-binary "@${file_path}" 2>&1; then
+			echo "[registry] WARNING: Failed to update artifact ${artifact_id}"
+		fi
 	else
 		echo "[registry] Create artifact: ${artifact_id}"
-		curl -fsS -X POST \
+		if ! curl -fsS -X POST \
 			"${REGISTRY_URL}/groups/default/artifacts?artifactId=${artifact_id}&artifactType=${type}" \
 			-H "Content-Type: ${content_type}" \
-			--data-binary "@${file_path}" >/dev/null
+			--data-binary "@${file_path}" 2>&1; then
+			echo "[registry] WARNING: Failed to create artifact ${artifact_id}"
+		fi
 	fi
 }
 

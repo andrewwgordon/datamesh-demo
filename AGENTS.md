@@ -57,9 +57,6 @@ JSON Schema: payload schemas referenced by AsyncAPI and used for runtime validat
 ├── AGENTS.md
 ├── README.md
 ├── Makefile
-├── .devcontainer/
-│   ├── devcontainer.json
-│   └── docker-compose.codespaces.yml
 ├── .github/
 │   ├── copilot-instructions.md
 │   ├── prompts/
@@ -170,7 +167,7 @@ Normalizer must tolerate duplicate events
 8) Backlog (Epics → Tickets)
 EPIC A — Platform (Compose)
 A1 Compose stack for Kafka/Postgres/Apicurio/Marquez/Keycloak and app services.
-Deliverables: `platform/docker-compose.yml`, `.devcontainer/docker-compose.codespaces.yml`
+Deliverables: `platform/docker-compose.yml`
 Tests: smoke healthchecks
 A2 Bootstrap scripts
 `00_create_topics.sh`
