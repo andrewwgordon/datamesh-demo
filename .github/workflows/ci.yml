@@ -20,6 +20,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Bring platform up
+        run: make up
+
+      - name: Bootstrap platform
+        run: make bootstrap
+
       - name: Validate contracts
         run: make validate
 
@@ -44,9 +50,20 @@ jobs:
       - name: Start platform services
         run: make up
 
+      - name: Bootstrap platform
+        run: make bootstrap
+
       - name: Run smoke tests
-        run: python -m pytest -q tests/smoke
+        run: make smoke-test
+      
+      - name: Run tests with contract validation
+        run: make validate
+
+      - name: Start CDC service
+        run: make cdc
+
+      - name: Run all Python tests
+        run: make test
 
       - name: Stop platform services
-        if: always()
         run: make down

@@ -10,8 +10,14 @@ bootstrap:
 	bash platform/bootstrap/02_seed_keycloak.sh
 	python platform/bootstrap/03_init_db.py
 
+smoke-test:
+	python -m pytest -q tests/smoke/smoke_test.py
+
 validate:
 	python -m pytest -q tests/contract_validation
+
+cdc:
+	python services/cdc_sim/main.py
 
 test: test-unit test-integration
 
