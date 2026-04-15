@@ -132,12 +132,52 @@ Phase B implements contracts-first artifacts.
 
 ## ToDo
 
+## Phase C (EAM + CDC runtime)
+
+Phase C wires the first two pieces of the end-to-end dataflow:
+
+1) **EAM Simulator** writes relational data to Postgres.
+2) **CDC Publisher** reads row changes from `cdc_log` and publishes CDC events to Kafka.
+
+### Implemented
+
+#### EAM Simulator (`services/eam_sim`)
+- FastAPI service with endpoints to create/update:
+	- `POST /assets`
+	- `GET /assets/{asset_id}`
+	- `PUT /assets/{asset_id}`
+	- `POST /work-orders`
+	- `GET /work-orders/{work_order_id}`
+	- `PUT /work-orders/{work_order_id}`
+- DB writes occur through `services/eam_sim/main.py` using Postgres connection settings from environment variables.
+
+#### CDC Publisher (`services/cdc_sim`)
+- Background publisher loop in `services/cdc_sim/main.py`:
+	- polls `cdc_log` for records where `published_at IS NULL`
+	- publishes row-level CDC events with **before + after** images to:
+		- `cdc.eam.asset.v1`
+		- `cdc.eam.work_order.v1`
+	- marks the corresponding `cdc_log` record as published after a successful Kafka send (idempotence)
+
+CDC event payloads are validated against the JSON Schemas in `contracts/schemas/`:
+
+- **Asset CDC** (`contracts/schemas/cdc.asset.v1.schema.json`)
+	- required: `eventId`, `eventTime`, `source`, `topic`, `table`, `op`, `before`, `after`
+	- `op` is one of `c`, `u`, `d` (nullability of `before`/`after` depends on `op`)
+
+- **WorkOrder CDC** (`contracts/schemas/cdc.work_order.v1.schema.json`)
+	- required: `eventId`, `eventTime`, `source`, `topic`, `table`, `op`, `before`, `after`
+	- `op` is one of `c`, `u`, `d` (nullability of `before`/`after` depends on `op`)
+
+### Tests added for Phase C
+- Unit tests:
+	- `tests/phase_c/test_cdc_sim_unit.py` (mocked Kafka producer + event payload checks)
+	- `tests/phase_c/test_eam_sim_unit.py` (black-box API checks against a running service on `localhost:8001`)
+- Integration tests:
+	- `tests/phase_c/test_integration.py` (DB → Kafka CDC flow)
+
 Remaining phases to implement:
 
-- **Phase C (EAM + CDC runtime):**
-	- EAM Simulator API
-	- CDC publisher service end-to-end behavior
-	- Ensure exactly-once publication semantics from `cdc_log`
 - **Phase D (Normalizer):**
 	- CDC consumers/state store
 	- Canonical transform + notification/snapshot emission
