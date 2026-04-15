@@ -5,34 +5,7 @@ on:
   pull_request:
 
 jobs:
-  contracts-and-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12.1"
-
-      - name: Install Python test dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-
-      - name: Bring platform up
-        run: make up
-
-      - name: Bootstrap platform
-        run: make bootstrap
-
-      - name: Validate contracts
-        run: make validate
-
-      - name: Run all Python tests
-        run: make test
-
-  smoke-compose-stack:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +33,7 @@ jobs:
         run: make validate
 
       - name: Start CDC service
-        run: make cdc
+        run: make cdc &
 
       - name: Run all Python tests
         run: make test
