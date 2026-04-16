@@ -41,11 +41,5 @@ jobs:
       - name: Run all Python tests
         run: make test
 
-      - name: Stop CDC service
-        run: make stop-cdc
-
-      - name: Stop EAM service
-        run: make stop-eam
-
       - name: Stop platform services
         run: make down
