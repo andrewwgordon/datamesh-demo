@@ -19,6 +19,7 @@ kafka-python-ng==2.2.3
 markdown-it-py==4.0.0
 mdurl==0.1.2
 multidict==6.7.1
+openlineage-python==1.46.0
 packaging==26.0
 pluggy==1.6.0
 psycopg2-binary==2.9.9
@@ -28,6 +29,7 @@ Pygments==2.20.0
 PySocks==1.7.1
 pytest==8.0.0
 pytest-cov==4.1.0
+python-dateutil==2.9.0.post0
 PyYAML==6.0.1
 referencing==0.37.0
 requests==2.33.1
@@ -35,6 +37,7 @@ requests-toolbelt==1.0.0
 rich==15.0.0
 rpds-py==0.30.0
 setuptools==82.0.1
+six==1.17.0
 starlette==0.35.1
 typing_extensions==4.15.0
 urllib3==2.6.3

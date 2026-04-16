@@ -19,11 +19,15 @@ start-cdc:
 start-eam:
 	python services/eam_sim/main.py &
 
+start-normalizer:
+	python services/normalizer/main.py &
+
 test: test-unit test-integration
 
 test-unit:
 	python -m pytest -q tests/cdc
 	python -m pytest -q tests/eam
+	python -m pytest -q tests/normalizer
 
 test-integration:
 	python -m pytest -q tests/eam_cdc_integration
@@ -33,6 +37,9 @@ stop-cdc:
 
 stop-eam:
 	pkill -f "python services/eam_sim/main.py"
+
+stop-normalizer:
+	pkill -f "python services/normalizer/main.py"
 
 down:
 	docker compose -f platform/docker-compose.yml down -v
