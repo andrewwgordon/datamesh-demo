@@ -1,9 +1,6 @@
 up:
 	docker compose -f platform/docker-compose.yml up -d
 
-down:
-	docker compose -f platform/docker-compose.yml down -v
-
 bootstrap:
 	bash platform/bootstrap/00_create_topics.sh
 	bash platform/bootstrap/01_register_artifacts.sh
@@ -11,24 +8,31 @@ bootstrap:
 	python platform/bootstrap/03_init_db.py
 
 smoke-test:
-	python -m pytest -q tests/smoke/smoke_test.py
+	python -m pytest -q tests/smoke/
 
-validate:
+validate-contracts:
 	python -m pytest -q tests/contract_validation
 
-cdc:
-	python services/cdc_sim/main.py
+start-cdc:
+	python services/cdc_sim/main.py &
+
+start-eam:
+	python services/eam_sim/main.py &
 
 test: test-unit test-integration
 
 test-unit:
-	python -m pytest -q tests/phase_c/test_unit_db_kafka.py
+	python -m pytest -q tests/cdc
+	python -m pytest -q tests/eam
 
 test-integration:
-	python -m pytest -q tests/phase_c/test_integration.py
+	python -m pytest -q tests/eam_cdc_integration
 
-e2e:
-	python -m pytest -q -m e2e
+stop-cdc:
+	pkill -f "python services/cdc_sim/main.py"
 
-demo: up bootstrap test
-	@echo "Run demo script steps from docs/RUNBOOK.md"
+stop-eam:
+	pkill -f "python services/eam_sim/main.py"
+
+down:
+	docker compose -f platform/docker-compose.yml down -v

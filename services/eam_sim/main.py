@@ -52,7 +52,8 @@ class AssetUpdate(BaseModel):
 class WorkOrderCreate(BaseModel):
     work_order_id: str = Field(..., description="Unique work order identifier")
     asset_id: str = Field(..., description="Associated asset ID")
-    description: str = Field(..., description="Work order description")
+    title: str = Field(..., description="Work order title")
+    description: Optional[str] = Field(None, description="Work order description")
     status: str = Field(default="OPEN", description="Work order status")
     priority: Optional[str] = Field("MEDIUM", description="Work order priority")
 
@@ -149,6 +150,7 @@ def update_asset(asset_id: str, asset_update: AssetUpdate):
 @app.post("/work-orders", tags=["WorkOrders"])
 def create_work_order(work_order: WorkOrderCreate):
     """Create a new work order."""
+    print(f"Creating work order: {work_order.work_order_id} for asset: {work_order.asset_id}")
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
@@ -159,11 +161,11 @@ def create_work_order(work_order: WorkOrderCreate):
             
             cur.execute(
                 """
-                INSERT INTO work_order (work_order_id, asset_id, description, status, priority)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO work_order (work_order_id, asset_id, title, description, status, priority)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
-                (work_order.work_order_id, work_order.asset_id, work_order.description, 
-                 work_order.status, work_order.priority)
+                (work_order.work_order_id, work_order.asset_id, work_order.title,
+                 work_order.description, work_order.status, work_order.priority)
             )
         conn.commit()
         logger.info(f"Created work order: {work_order.work_order_id}")
@@ -182,7 +184,7 @@ def get_work_order(work_order_id: str):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT work_order_id, asset_id, description, status, priority
+                SELECT work_order_id, asset_id, title, description, status, priority
                 FROM work_order WHERE work_order_id = %s
                 """,
                 (work_order_id,)
@@ -193,9 +195,10 @@ def get_work_order(work_order_id: str):
             return {
                 "work_order_id": row[0],
                 "asset_id": row[1],
-                "description": row[2],
-                "status": row[3],
-                "priority": row[4]
+                "title": row[2],
+                "description": row[3],
+                "status": row[4],
+                "priority": row[5]
             }
     finally:
         conn.close()

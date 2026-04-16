@@ -30,13 +30,22 @@ jobs:
         run: make smoke-test
       
       - name: Run tests with contract validation
-        run: make validate
+        run: make validate-contracts
 
       - name: Start CDC service
-        run: make cdc &
+        run: make start-cdc
+
+      - name: Start EAM service
+        run: make start-eam
 
       - name: Run all Python tests
         run: make test
+
+      - name: Stop CDC service
+        run: make stop-cdc
+
+      - name: Stop EAM service
+        run: make stop-eam
 
       - name: Stop platform services
         run: make down

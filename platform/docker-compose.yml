@@ -144,58 +144,6 @@ services:
       retries: 30
       start_period: 40s
 
-  eam-sim:
-    image: alpine:3.20
-    container_name: datamesh-eam-sim
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  cdc-sim:
-    image: alpine:3.20
-    container_name: datamesh-cdc-sim
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-
-  normalizer:
-    image: alpine:3.20
-    container_name: datamesh-normalizer
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      cdc-sim:
-        condition: service_started
-
-  data-product:
-    image: alpine:3.20
-    container_name: datamesh-data-product
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      normalizer:
-        condition: service_started
-      keycloak:
-        condition: service_healthy
-
-  consumer-notif-pull:
-    image: alpine:3.20
-    container_name: datamesh-consumer-notif-pull
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      data-product:
-        condition: service_started
-
-  consumer-ecst:
-    image: alpine:3.20
-    container_name: datamesh-consumer-ecst
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      data-product:
-        condition: service_started
-
 volumes:
   postgres_data:
   kafka_data:

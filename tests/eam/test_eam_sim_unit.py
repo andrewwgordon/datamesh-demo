@@ -13,43 +13,34 @@ Run:
 
 import pytest
 import requests
+import psycopg2
+import os
 
 
-class DummyCursor:
-    def __init__(self, fetchone_results=None, rowcount=1):
-        self._fetchone_results = list(fetchone_results or [])
-        self.rowcount = rowcount
-        self.queries = []
-
-    def execute(self, query, params=None):
-        self.queries.append((query, params))
-
-    def fetchone(self):
-        if self._fetchone_results:
-            return self._fetchone_results.pop(0)
-        return None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
+def clear_tables():
+    """Delete all rows from asset and work_order tables."""
+    conn = psycopg2.connect(
+        host=os.getenv("POSTGRES_HOST", "localhost"),
+        port=os.getenv("POSTGRES_PORT", "5432"),
+        database=os.getenv("POSTGRES_DB", "eam"),
+        user=os.getenv("POSTGRES_USER", "postgres"),
+        password=os.getenv("POSTGRES_PASSWORD", "postgres"),
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM work_order")
+            cur.execute("DELETE FROM asset")
+            cur.execute("DELETE FROM cdc_log WHERE table_name IN ('asset', 'work_order')")
+        conn.commit()
+    finally:
+        conn.close()
 
 
-class DummyConn:
-    def __init__(self, cursor: DummyCursor):
-        self._cursor = cursor
-        self.commits = 0
-        self.closes = 0
-
-    def cursor(self):
-        return self._cursor
-
-    def commit(self):
-        self.commits += 1
-
-    def close(self):
-        self.closes += 1
+@pytest.fixture(scope="session", autouse=True)
+def clean_db():
+    """Clear database tables once before all tests."""
+    clear_tables()
+    yield
 
 
 @pytest.fixture()
@@ -88,6 +79,34 @@ def test_get_asset_not_found_returns_404(client):
     assert resp.status_code == 404
 
 
+def test_create_work_order_with_valid_asset(client):
+    """Test creating a work order with a valid asset succeeds."""
+    base, s = client
+    # First create the asset
+    resp = s.post(
+        f"{base}/assets",
+        json={"asset_id": "A-200", "name": "Valve", "type": "VALVE", "location": "L2"},
+        timeout=10,
+    )
+    assert resp.status_code == 200
+    
+    # Then create the work order
+    resp = s.post(
+        f"{base}/work-orders",
+        json={
+            "work_order_id": "WO-100",
+            "asset_id": "A-200",
+            "title": "Replace valve",
+            "description": "Replace valve",
+            "status": "OPEN",
+            "priority": "HIGH",
+        },
+        timeout=10,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["work_order_id"] == "WO-100"
+
+
 def test_create_work_order_missing_asset_returns_400(client):
     base, s = client
     resp = s.post(
@@ -95,6 +114,7 @@ def test_create_work_order_missing_asset_returns_400(client):
         json={
             "work_order_id": "WO-1",
             "asset_id": "A-DOES-NOT-EXIST",
+            "title": "Fix",
             "description": "Fix",
             "status": "OPEN",
             "priority": "HIGH",
